@@ -65,40 +65,42 @@ Usage: pcf-usage-report-ai.sh [OPTION]...
 2. To generate AI usage report with specified ORG (e.g. dev here) and desired fields only, in "browsing" mode:
 
 ```sh
-$ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
+$ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
 ```
 
 Which will output something like:
 
 ```
-year  month  org_name  instance_count  memory_in_mb_per_instance  duration_in_seconds
-2018  01     dev       1               1024                       1724051
-2018  01     dev       1               1024                       182900
-2018  01     dev       1               512                        2005
-2018  01     dev       1               768                        1854941
-2018  01     dev       2               2048                       2678400
-2018  02     dev       1               1024                       139019
-2018  02     dev       1               1024                       2270219
-2018  02     dev       1               1024                       2419200
-2018  02     dev       1               1024                       58570
-2018  02     dev       1               512                        16
-2018  02     dev       1               768                        2419200
-2018  02     dev       2               2048                       2270145
-2018  03     dev       1               1024                       2573355
-2018  03     dev       1               768                        2678400
-2018  03     dev       2               1024                       178
-2018  03     dev       2               1024                       3358
-2018  04     dev       1               1024                       1169317
-2018  04     dev       1               1024                       1421288
-2018  04     dev       1               1024                       2510
-2018  04     dev       1               1024                       318
-2018  04     dev       1               1024                       4596
-2018  04     dev       1               1024                       508266
-2018  04     dev       2               1024                       337864
+year  month  org_name  app_name  instance_count  memory_in_mb_per_instance  duration_in_seconds
+2018  01     dev       my-app-1       1               1024                       1724051
+2018  01     dev       my-app-2       1               1024                       182900
+2018  01     dev       my-app-3       1               512                        2005
+2018  01     dev       my-app-4       1               768                        1854941
+2018  01     dev       my-app-5       2               2048                       2678400
+2018  02     dev       my-app-1       1               1024                       139019
+2018  02     dev       my-app-2       1               1024                       2270219
+2018  02     dev       my-app-3       1               1024                       2419200
+2018  02     dev       my-app-4       1               1024                       58570
+2018  02     dev       my-app-5       1               512                        16
+2018  02     dev       my-app-6       1               768                        2419200
+2018  02     dev       my-app-7       2               2048                       2270145
+2018  03     dev       my-app-1       1               1024                       2573355
+2018  03     dev       my-app-2       1               768                        2678400
+2018  03     dev       my-app-3       2               1024                       178
+2018  03     dev       my-app-4       2               1024                       3358
+2018  04     dev       my-app-1       1               1024                       1169317
+2018  04     dev       my-app-2       1               1024                       1421288
+2018  04     dev       my-app-3       1               1024                       2510
+2018  04     dev       my-app-4       1               1024                       318
+2018  04     dev       my-app-8       1               1024                       4596
+2018  04     dev       my-app-9       1               1024                       508266
+2018  04     dev       my-app-x       2               1024                       337864
 :
 ```
 
-> Tips: if the records are more than one screen, please hit ENTER to browse the rest; Key in "q" to exit
+> Tips: 
+> - If the records are more than one screen, please hit ENTER to browse the rest; Key in "q" to exit
+> - The complete field list includes: year month org_guid org_name instance_count memory_in_mb_per_instance duration_in_seconds space_guid space_name app_guid app_name
 
 
 3. To generate AI usage report with specified ORG (e.g. dev here) and desired fields only, with a TAB separated format which will be easier for further processing:
@@ -168,7 +170,9 @@ year  month  org_name  duration_in_seconds
 :
 ```
 
-> Tips: if the records are more than one screen, please hit ENTER to browse the rest; Key in "q" to exit
+> Tips: 
+> - If the records are more than one screen, please hit ENTER to browse the rest; Key in "q" to exit;
+> - The complete field list includes: year month org_guid org_name duration_in_seconds space_guid space_name service_instance_guid service_instance_name service_guid service_name service_plan_guid service_plan_name service_instance_creation deleted service_instance_deletion
 
 
 3. To generate SI usage report with specified ORG (e.g. dev here) and desired fields only, with a TAB separated format which will be easier for further processing:
@@ -223,8 +227,9 @@ year  month  org_name  app_name  task_count  total_duration_in_seconds  memory_i
 ```
 
 > Tips:
-> - if the records are more than one screen, please hit ENTER to browse the rest; Key in "q" to exit
-> - typically, there are just few task records, depending on how the ORG uses PCF
+> - If the records are more than one screen, please hit ENTER to browse the rest; Key in "q" to exit;
+> - Typically, there are just few task records, depending on how the company uses PCF;
+> - The complete field list includes: year month org_guid org_name task_count total_duration_in_seconds memory_in_mb_per_instance app_guid app_name
 
 
 3. To generate Task usage report with specified ORG (e.g. dev here) and desired fields only, with a TAB separated format which will be easier for further processing:
