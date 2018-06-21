@@ -39,6 +39,8 @@
 set -euo pipefail
 umask 0077
 
+source ./common.sh
+
 PROPERTIES_TO_SHOW_H=("#" year month org_guid org_name task_count total_duration_in_seconds memory_in_mb_per_instance app_guid app_name)
 PROPERTIES_TO_SHOW=(.year .month .organization_guid .organization_name .task_count_for_range .total_duration_in_seconds_for_range .memory_in_mb_per_instance .parent_application_guid .parent_application_name)
 
@@ -66,27 +68,6 @@ EOF
 
 P_TO_SHOW_H=$(echo "${PROPERTIES_TO_SHOW_H[*]}")
 P_TO_SHOW=$(IFS=','; echo "${PROPERTIES_TO_SHOW[*]}")
-
-p_index() {
-    for i in "${!PROPERTIES_TO_SHOW_H[@]}"; do
-       if [[ "${PROPERTIES_TO_SHOW_H[$i]}" == "$1" ]]; then
-           echo $(($i+1))
-       fi
-    done
-}
-
-p_names_to_indexes() {
-    IFS=','
-    fields=()
-    for f in $1; do
-        if [[ $f =~ ^[0-9]+$ ]]; then
-            fields+=($f)
-        else
-            fields+=($(p_index "$f"))
-        fi
-    done
-    echo "${fields[*]}"
-}
 
 # Process command line options
 opt_sort_options=""
@@ -205,127 +186,9 @@ script_name=$(basename "$0")
 user_id=$(id -u)
 cf_target=$(cf target)
 
-get_json () {
-    next_url="$1"
-
-    is_api_v2=false
-    is_api_v3=false
-
-    [[ ${next_url#/v2} != $next_url ]] && is_api_v2=true
-    [[ ${next_url#/v3} != $next_url ]] && is_api_v3=true
-
-    next_url_hash=$(echo "$next_url" "$cf_target" | $(which md5sum || which md5) | cut -d' ' -f1)
-    cache_filename="/tmp/.$script_name.$user_id.$next_url_hash"
-
-    if [[ $UPDATE_CACHE_MINUTES != "no_cache" ]]; then
-        # Remove expired cache file
-        find "$cache_filename" -maxdepth 0 -mmin +$UPDATE_CACHE_MINUTES -exec rm '{}' \; 2>/dev/null || true
-
-        # Read from cache if exists
-        if [[ -f "$cache_filename" ]]; then
-            cat "$cache_filename"
-            return
-        fi
-    fi
-
-    output_all=()
-    json_output=""
-    current_page=0
-    total_pages=0
-    while [[ $next_url != null ]]; do
-        # Get data
-        json_data=$(cf curl "$next_url")
-
-        # Show progress
-        current_page=$((current_page + 1))
-        if [[ $total_pages -eq 0 ]]; then
-            if $is_api_v2; then
-                total_pages=$(cf curl "$next_url" | jq '.total_pages')
-            elif $is_api_v3; then
-                total_pages=$(cf curl "$next_url" | jq '.pagination.total_pages')
-            fi
-        fi
-        if $VERBOSE; then
-            [[ $current_page -gt 1 ]] && echo -ne "\033[1A" >&2
-            echo -e "Fetched page $current_page from $total_pages ( $next_url )\033[0K\r" >&2
-        fi
-
-        # Generate output
-        if $is_api_v2; then
-            output_current=$(echo "$json_data" | jq '[ .resources[] | {key: .metadata.guid, value: .} ] | from_entries')
-        elif $is_api_v3; then
-            output_current=$(echo "$json_data" | jq '[ .resources[] | {key: .guid, value: .} ] | from_entries')
-        fi
-
-
-        # Append current output to the result
-        output_all+=("$output_current")
-
-        # Get URL for next page of results
-        if $is_api_v2; then
-            next_url=$(echo "$json_data" | jq .next_url -r)
-        elif $is_api_v3; then
-            next_url=$(echo "$json_data" | jq .pagination.next.href -r | sed 's#^http\(s\?\)://[^/]\+/v3#/v3#')
-        fi
-    done
-    json_output=$( (IFS=$'\n'; echo "${output_all[*]}") | jq -s 'add' )
-
-    # Update cache file
-    if [[ $UPDATE_CACHE_MINUTES != "no_cache" ]]; then
-        echo "$json_output" > "$cache_filename"
-    fi
-
-    echo "$json_output"
-}
-
 A_ORGS_ONLY=()
 A_START_DATES=()
 A_END_DATES=()
-
-f_populate_dates() {
-    START_DATE=$1;  # starting date
-    TODAY=$(date +"%Y-%m-%d")
-    YYYYMM=$(date -j -f '%Y-%m-%d' "$START_DATE" +'%Y-%m')
-    END_DATE=$(f_month_last_date "$YYYYMM")
-
-    while true;
-    do
-        #echo "$START_DATE -> $END_DATE: $TODAY"
-        if [[ ! "$END_DATE" < "$TODAY" ]]; then
-            A_START_DATES+=($START_DATE)
-            A_END_DATES+=($TODAY)
-
-            break
-        else
-            A_START_DATES+=($START_DATE)
-            A_END_DATES+=($END_DATE)
-        fi
-
-        # next, +1 month
-        YYYYMM=$(date -j -f %Y-%m-%d -v+1m "$YYYYMM-01" +%Y-%m)
-        START_DATE="$YYYYMM-01";
-        END_DATE=$(f_month_last_date "$YYYYMM"); 
-    done
-}
-
-f_month_last_date() {
-    echo $(date -j -f %Y-%m-%d -v+1m -v-1d "$1-01" +%Y-%m-%d) # YYYY-MM
-}
-
-f_elementExists() {
-    element=$1 && shift
-	elements=($@)
-
-    for e in "${elements[@]}"
-    do
-        if [[ "$e" = "$element" ]] ; then
-            echo "true"
-            return
-        fi
-    done
-
-    echo "false"
-}
 
 get_usage_json () {
     org_json=$1
@@ -364,7 +227,7 @@ get_usage_json () {
     done
 
     #json_output=$( (IFS=$'\n'; echo "${output_all[*]}") | jq -s 'add' )
-    json_output=$( (IFS=$'\n'; echo "${output_all[@]:-}") | jq -s 'add' )
+    json_output=$( (IFS=$'\n'; echo "${output_all[@]:-}") | jq -s '.' )
     echo "$json_output"
 }
 
