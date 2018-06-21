@@ -244,19 +244,25 @@ f_populate_dates "$opt_start_date"
 json_usage_task=$(get_usage_json "$json_organizations" | jq "{task_usages:.}")
 
 # Add extra data to json_usage_task
-json_usage_task=$(echo "$json_organizations"$'\n'"$json_usage_task" | \
-     jq -s 'add' | \
-     jq '.organizations as $organizations |
-        .task_usages as $all |
-        .task_usages[] |= (
-                    .spaces[].task_summaries[].organization_guid = $all[.organization_guid].organization_guid |
-                    .spaces[].task_summaries[].organization_name = $organizations[.organization_guid].entity.name |
-                    .spaces[].task_summaries[].year = ($all[.organization_guid].period_start|split("-")[0]) |
-                    .spaces[].task_summaries[].month = ($all[.organization_guid].period_start|split("-")[1])
-                    ) |
-        .task_usages[].spaces[].task_summaries | 
-        [ .[] | {key: (.year + "-" + .month + "-" + .organization_guid + "-" + .parent_application_guid), value: .} ] | from_entries' | \
-     jq -s 'add' | jq '. // {} | {task_usages: .}')
+object_count=$(echo $json_usage_task | jq '.task_usages[].spaces' | jq -s 'add | length')
+if [ "$object_count" == "0" ]; then
+    echo "no task usage records found"
+    exit 0
+else
+    json_usage_task=$(echo "$json_organizations"$'\n'"$json_usage_task" | \
+        jq -s 'add' | \
+        jq '.organizations as $organizations |
+            .task_usages as $all |
+            .task_usages[] |= (
+                        .spaces[].task_summaries[].organization_guid = $all[.organization_guid].organization_guid |
+                        .spaces[].task_summaries[].organization_name = $organizations[.organization_guid].entity.name |
+                        .spaces[].task_summaries[].year = ($all[.organization_guid].period_start|split("-")[0]) |
+                        .spaces[].task_summaries[].month = ($all[.organization_guid].period_start|split("-")[1])
+                        ) |
+            .task_usages[].spaces[].task_summaries | 
+            [ .[] | {key: (.year + "-" + .month + "-" + .organization_guid + "-" + .parent_application_guid), value: .} ] | from_entries' | \
+        jq -s 'add' | jq '. // {} | {task_usages: .}')
+fi
 
 if $PRINT_JSON; then
     echo "$json_usage_task"
@@ -283,5 +289,4 @@ else
             # Format columns for nice output
             eval $FORMAT_OUTPUT | less --quit-if-one-screen --no-init --chop-long-lines
     fi
-
 fi
