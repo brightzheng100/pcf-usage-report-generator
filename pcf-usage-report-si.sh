@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# pcf-usage-report-si.sh - Generate detailed SI usage report for all orgs all months in one cli call
+# pcf-usage-report-si.sh - Generate detailed SI usage report for all or any orgs all months in one cli call
 #
 # Copyright (C) 2016  Rakuten, Inc.
 # Copyright (C) 2018  Bright Zheng
@@ -23,17 +23,22 @@
 # Given: 
 #   1) the sys domain: "sys.pcf-gcp.abc.com"; 
 #   2) starting from (YYYY-mm-dd): 2018-01-20
-# Sample commands:
-#   1) generate AI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20"
-#       ./pcf-usage-report-si.sh -D sys.pcf-gcp.abc.com -d "2018-01-20"
-#   2) generate AI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", as JSON output
-#       ./pcf-usage-report-si.sh -D sys.pcf-gcp.abc.com -d "2018-01-20" -j
-#   3) generate AI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", for specified "dev" org only
-#       ./pcf-usage-report-si.sh -D sys.pcf-gcp.abc.com -d "2018-01-20" -o dev
-#   4) generate AI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", with specified fields only
-#       ./pcf-usage-report-si.sh -D sys.pcf-gcp.abc.com -d "2018-01-20" -f year,month,org_name,duration_in_seconds,service_instance_name,service_name,service_plan_name,deleted
-#   5) generate AI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", with specified fields and tab separated output for further processing
-#       ./pcf-usage-report-si.sh -D sys.pcf-gcp.abc.com -d "2018-01-20" -N -f year,month,org_name,duration_in_seconds,service_instance_name,service_name,service_plan_name,deleted
+#   3) org is: dev (org is optional to set; default would be all orgs -- which may take pretty long time)
+# Then:
+#   $ export SYS_DOMAIN="sys.pcf-gcp.abc.com"
+#   $ export USAGE_START_DATE="2018-01-20"
+#   $ export ORG="dev"
+# And The Sample commands:
+#   1) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20"
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE}
+#   2) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", as JSON output
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -j
+#   3) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", for specified "dev" org only
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG}
+#   4) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", with specified fields only
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,duration_in_seconds,service_instance_name,service_name,service_plan_name,deleted
+#   5) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", with specified fields and csv separated output for further processing
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,duration_in_seconds,service_instance_name,service_name,service_plan_name,deleted -N -F csv
 
 
 set -euo pipefail
@@ -48,6 +53,7 @@ show_usage () {
     cat << EOF
 Usage: $(basename "$0") [OPTION]...
 
+  -D <sys domain name>      PCF's system domain name, e.g. sys.pcf-gcp.abc.com
   -s <sort field>           sort by specified field index or its name
   -S <sort field>           sort by specified field index or its name (numeric)
   -f <field1,field2,...>    show only fields specified by indexes or field names
@@ -57,7 +63,8 @@ Usage: $(basename "$0") [OPTION]...
   -U <minutes>              filter objects updated more than <minutes> ago
   -k <minutes>              update cache if older than <minutes> (default: 10)
   -n                        ignore cache
-  -N                        do not format output and keep it tab-separated (useful for further processing)
+  -N                        do not format output and keep it delimiter-separated which decided by -F, default is tab-seperated
+  -F <csv|tsv>              delimiter used to separate columns; currently supports csv and tsv 
   -j                        print json (filter and sort options are not applied when -j is in use)
   -v                        verbose
   -o <org1,org2...>         a list of orgs to be used for usage generation, separated by commas
@@ -65,9 +72,6 @@ Usage: $(basename "$0") [OPTION]...
   -h                        display this help and exit
 EOF
 }
-
-P_TO_SHOW_H=$(echo "${PROPERTIES_TO_SHOW_H[*]}")
-P_TO_SHOW=$(IFS=','; echo "${PROPERTIES_TO_SHOW[*]}")
 
 # Process command line options
 opt_sort_options=""
@@ -82,7 +86,11 @@ opt_update_cache_minutes=""
 opt_print_json=""
 opt_verbose=""
 opt_orgs=""
-while getopts "o:D:d:s:S:c:u:C:U:f:k:nNjvh" opt; do
+opt_seperator="\t"
+opt_csv_tsv="@tsv"
+opt_nl_string=""
+
+while getopts "o:D:d:s:S:c:u:C:U:f:k:nNF:jvh" opt; do
     case $opt in
         s)  opt_sort_options="-k"
             opt_sort_field=$OPTARG
@@ -103,6 +111,13 @@ while getopts "o:D:d:s:S:c:u:C:U:f:k:nNjvh" opt; do
         k)  opt_update_cache_minutes=$OPTARG
             ;;
         N)  opt_format_output="false"
+            ;;
+        F)  
+            if [[ $OPTARG == "csv" ]]; then
+                opt_seperator=","
+                opt_csv_tsv="@csv"
+                opt_nl_string="-s ,"
+            fi
             ;;
         n)  opt_update_cache_minutes="no_cache"
             ;;
@@ -127,6 +142,9 @@ while getopts "o:D:d:s:S:c:u:C:U:f:k:nNjvh" opt; do
     esac
 done
 
+P_TO_SHOW_H=$(echo "${PROPERTIES_TO_SHOW_H[*]}")
+P_TO_SHOW=$(IFS=','; echo "${PROPERTIES_TO_SHOW[*]}")
+
 # Set verbosity
 VERBOSE=${opt_verbose:-false}
 
@@ -147,8 +165,12 @@ if [[ -z $opt_cut_fields ]]; then
     CUT_FIELDS="cat"
 else
     opt_cut_fields=$(p_names_to_indexes "$opt_cut_fields")
-    cut_fields_awk=$(echo "$opt_cut_fields" | sed 's/\([0-9][0-9]*\)/$\1/g; s/,/"\\t"/g')
-    CUT_FIELDS='awk -F"\t" "{print $cut_fields_awk}"'
+
+    #cut_fields_awk=$(echo "$opt_cut_fields" | sed 's/\([0-9][0-9]*\)/$\1/g; s/,/"\\t"/g')
+    cut_fields_awk=$(echo "$opt_cut_fields" | sed 's/\([0-9][0-9]*\)/$\1/g; s/,/"\'"$opt_seperator"'"/g')
+
+    #CUT_FIELDS='awk -F"\t" "{print $cut_fields_awk}"'
+    CUT_FIELDS='awk -F"'"$opt_seperator"'" "{print $cut_fields_awk}"'
 fi
 
 # Define format output command
@@ -263,23 +285,26 @@ json_usage_si=$(echo "$json_organizations"$'\n'"$json_usage_si" | \
 if $PRINT_JSON; then
     echo "$json_usage_si"
 else
-    # Generate service instances list (tab-delimited)
+    # Generate service instances list (delimited by @tsv or @csv)
     json_usage_si_list=$(echo "$json_usage_si" |\
         jq -r ".[] |
             $POST_FILTER
             [ $P_TO_SHOW | select (. == null) = \"<null>\" | select (. == \"\") = \"<empty>\" ] |
-            @tsv")
+            $opt_csv_tsv")
 
     if [[ $opt_format_output == "false" ]]; then
         # Print headers and app_list
-        (echo $P_TO_SHOW_H | tr ' ' '\t'; echo -n "$json_usage_si_list" | sort -t $'\t' $SORT_OPTIONS | nl -w4) | \
+        #(echo $P_TO_SHOW_H | tr ' ' '\t'; echo -n "$json_usage_si_list" | sort -t $'\t' $SORT_OPTIONS | nl -w4) | \
+        (echo $P_TO_SHOW_H | tr ' ' ''$opt_seperator''; \
+         echo -n "$json_usage_si_list" | sort -t ''$opt_seperator'' $SORT_OPTIONS | nl -w4 $opt_nl_string) | \
             # Cut fields
             eval $CUT_FIELDS | \
             # Format columns for nice output
             eval $FORMAT_OUTPUT
     else
         # Print headers and app_list
-        (echo $P_TO_SHOW_H | tr ' ' '\t'; echo -n "$json_usage_si_list" | sort -t $'\t' $SORT_OPTIONS | nl -w4) | \
+        (echo $P_TO_SHOW_H | tr ' ' '\t'; \
+         echo -n "$json_usage_si_list" | sort -t $'\t' $SORT_OPTIONS | nl -w4) | \
             # Cut fields
             eval $CUT_FIELDS | \
             # Format columns for nice output

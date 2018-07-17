@@ -15,7 +15,7 @@ There are three types of usage reports:
 
 - [jq](https://stedolan.github.io/jq/download/) >=1.5 installed
 - [cf](https://github.com/cloudfoundry/cli/releases) command line tool installed
-- Logged into PCF using `cf login`
+- Logged into PCF by `cf login`
 
 > Note: if you want to generate usage reports for all orgs, login with admin account instead
 
@@ -30,6 +30,7 @@ So we export them as below:
 ```sh
 $ export SYS_DOMAIN=sys.pcf.mycompany.com
 $ export USAGE_START_DATE="2018-01-01"
+$ export ORG="dev"  #org is optional to set; default would be all orgs -- which may take pretty long time
 ```
 
 
@@ -45,6 +46,7 @@ Below are some common usage examples.
 ./pcf-usage-report-ai.sh -h
 Usage: pcf-usage-report-ai.sh [OPTION]...
 
+  -D <sys domain name>      PCF's system domain name, e.g. sys.pcf-gcp.abc.com
   -s <sort field>           sort by specified field index or its name
   -S <sort field>           sort by specified field index or its name (numeric)
   -f <field1,field2,...>    show only fields specified by indexes or field names
@@ -65,7 +67,8 @@ Usage: pcf-usage-report-ai.sh [OPTION]...
 2. To generate AI usage report with specified ORG (e.g. dev here) and desired fields only, in "browsing" mode:
 
 ```sh
-$ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
+$ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
+    -f year,month,org_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
 ```
 
 Which will output something like:
@@ -103,10 +106,11 @@ year  month  org_name  app_name  instance_count  memory_in_mb_per_instance  dura
 > - The complete field list includes: year month org_guid org_name instance_count memory_in_mb_per_instance duration_in_seconds space_guid space_name app_guid app_name
 
 
-3. To generate AI usage report with specified ORG (e.g. dev here) and desired fields only, with a TAB separated format which will be easier for further processing:
+3. To generate AI usage report with specified ORG (e.g. dev here) and desired fields only, with a delimiter (`csv` or `tsv`) separated format which will be easier for further processing:
 
 ```sh
-$ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N > ai-dev.csv
+$ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
+    -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > ai-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
@@ -124,6 +128,7 @@ Below are some common usage examples.
 ./pcf-usage-report-si.sh -h
 Usage: pcf-usage-report-si.sh [OPTION]...
 
+  -D <sys domain name>      PCF's system domain name, e.g. sys.pcf-gcp.abc.com
   -s <sort field>           sort by specified field index or its name
   -S <sort field>           sort by specified field index or its name (numeric)
   -f <field1,field2,...>    show only fields specified by indexes or field names
@@ -144,7 +149,8 @@ Usage: pcf-usage-report-si.sh [OPTION]...
 2. To generate SI usage report with specified ORG (e.g. dev here) and desired fields only, in "browsing" mode:
 
 ```sh
-$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
+$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
+    -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
 ```
 
 Which will output something like:
@@ -175,10 +181,10 @@ year  month  org_name  duration_in_seconds
 > - The complete field list includes: year month org_guid org_name duration_in_seconds space_guid space_name service_instance_guid service_instance_name service_guid service_name service_plan_guid service_plan_name service_instance_creation deleted service_instance_deletion
 
 
-3. To generate SI usage report with specified ORG (e.g. dev here) and desired fields only, with a TAB separated format which will be easier for further processing:
+3. To generate SI usage report with specified ORG (e.g. dev here) and desired fields only, with a delimiter (`csv` or `tsv`) separated format which will be easier for further processing:
 
 ```sh
-$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N > si-dev.csv
+$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > si-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
@@ -196,6 +202,7 @@ Below are some common usage examples.
 ./pcf-usage-report-task.sh -h
 Usage: pcf-usage-report-task.sh [OPTION]...
 
+  -D <sys domain name>      PCF's system domain name, e.g. sys.pcf-gcp.abc.com
   -s <sort field>           sort by specified field index or its name
   -S <sort field>           sort by specified field index or its name (numeric)
   -f <field1,field2,...>    show only fields specified by indexes or field names
@@ -216,7 +223,8 @@ Usage: pcf-usage-report-task.sh [OPTION]...
 2. To generate Task usage report with specified ORG (e.g. dev here) and desired fields only, in "browsing" mode:
 
 ```sh
-$ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance
+$ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
+    -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance
 ```
 
 Which will output something like:
@@ -232,14 +240,14 @@ year  month  org_name  app_name  task_count  total_duration_in_seconds  memory_i
 > - The complete field list includes: year month org_guid org_name task_count total_duration_in_seconds memory_in_mb_per_instance app_guid app_name
 
 
-3. To generate Task usage report with specified ORG (e.g. dev here) and desired fields only, with a TAB separated format which will be easier for further processing:
+3. To generate Task usage report with specified ORG (e.g. dev here) and desired fields only, with a delimiter (csv or tsv) separated format which will be easier for further processing:
 
 ```sh
-$ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o dev -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance -N > task-dev.csv
+$ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
+    -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance -N -F csv > task-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
-
 
 
 # Process Usage Reports
@@ -295,12 +303,16 @@ The formula for these two fields:
 > - Please refer to the sample spreadsheet [task-analysis.xlsx](analysis/task-analysis.xlsx) for details
 
 
+# Change Logs:
+
+- 13/05/2018: initial draft
+- 15/07/2018: added `-F <csv,tsv>` support to generate `csv` or `tsv` formatted output
+
 
 # References
 
 - Reporting App, Task, and Service Instance Usage
   http://docs.pivotal.io/pivotalcf/2-0/opsguide/accounting-report.html#cf-cli
-
 
 
 # Known Issues
@@ -316,7 +328,7 @@ Or
 jq: error (at <stdin>:180): Cannot iterate over null (null)
 ```
 
-It's mainly caused by no records found.
-Please check whether you keyed in corret inputs like org name.
+It's probably caused by no records found or `cf` token expiry.
+Please check whether you're using corret inputs like org name, or simply re-login by using `cf login`.
 
 Will improve the scripts' robustness in future.
