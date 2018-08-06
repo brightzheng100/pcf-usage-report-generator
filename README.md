@@ -110,7 +110,7 @@ year  month  org_name  app_name  instance_count  memory_in_mb_per_instance  dura
 
 ```sh
 $ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
-    -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > ai-dev.csv
+    -f year,month,org_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > ai-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
