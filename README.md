@@ -110,7 +110,8 @@ year  month  org_name  app_name  instance_count  memory_in_mb_per_instance  dura
 
 ```sh
 $ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
-    -f year,month,org_name,space_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > ai-dev.csv
+  -f year,month,org_name,space_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds \
+  -N -F csv > ai-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
@@ -184,7 +185,9 @@ year  month  org_name  duration_in_seconds
 3. To generate SI usage report with specified ORG (e.g. dev here) and desired fields only, with a delimiter (`csv` or `tsv`) separated format which will be easier for further processing:
 
 ```sh
-$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,space_name,service_name,service_plan_name,duration_in_seconds,deleted -N -F csv > si-dev.csv
+$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
+  -f year,month,org_name,space_name,service_name,service_plan_name,duration_in_seconds,deleted \
+  -N -F csv > si-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
@@ -224,7 +227,7 @@ Usage: pcf-usage-report-task.sh [OPTION]...
 
 ```sh
 $ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
-    -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance
+  -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance
 ```
 
 Which will output something like:
@@ -244,7 +247,8 @@ year  month  org_name  app_name  task_count  total_duration_in_seconds  memory_i
 
 ```sh
 $ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
-    -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance -N -F csv > task-dev.csv
+  -f year,month,org_name,app_name,task_count,total_duration_in_seconds,memory_in_mb_per_instance \
+  -N -F csv > task-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
