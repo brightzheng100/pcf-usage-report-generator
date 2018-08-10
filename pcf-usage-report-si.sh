@@ -36,9 +36,9 @@
 #   3) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", for specified "dev" org only
 #       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG}
 #   4) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", with specified fields only
-#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,duration_in_seconds,service_instance_name,service_name,service_plan_name,deleted
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,space_name,service_name,service_plan_name,duration_in_seconds,deleted
 #   5) generate SI report for system domain of "sys.pcf-gcp.abc.com", starting from "2018-01-20", with specified fields and csv separated output for further processing
-#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,duration_in_seconds,service_instance_name,service_name,service_plan_name,deleted -N -F csv
+#       ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,space_name,service_name,service_plan_name,duration_in_seconds,deleted -N -F csv
 
 
 set -euo pipefail

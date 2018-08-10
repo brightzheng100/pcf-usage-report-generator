@@ -110,7 +110,7 @@ year  month  org_name  app_name  instance_count  memory_in_mb_per_instance  dura
 
 ```sh
 $ ./pcf-usage-report-ai.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
-    -f year,month,org_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > ai-dev.csv
+    -f year,month,org_name,space_name,app_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > ai-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
@@ -150,7 +150,7 @@ Usage: pcf-usage-report-si.sh [OPTION]...
 
 ```sh
 $ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
-    -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds
+    -f year,month,org_name,duration_in_seconds
 ```
 
 Which will output something like:
@@ -184,7 +184,7 @@ year  month  org_name  duration_in_seconds
 3. To generate SI usage report with specified ORG (e.g. dev here) and desired fields only, with a delimiter (`csv` or `tsv`) separated format which will be easier for further processing:
 
 ```sh
-$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,instance_count,memory_in_mb_per_instance,duration_in_seconds -N -F csv > si-dev.csv
+$ ./pcf-usage-report-si.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} -f year,month,org_name,space_name,service_name,service_plan_name,duration_in_seconds,deleted -N -F csv > si-dev.csv
 ```
 
 > Tips: Refer to below [Process Usage Reports](#process-usage-reports) for how to establish better usage analysis reports
@@ -254,15 +254,15 @@ $ ./pcf-usage-report-task.sh -D ${SYS_DOMAIN} -d ${USAGE_START_DATE} -o ${ORG} \
 
 Let's use Excel as example to establish better usage analysis reports
 The steps are exactly the same for all types of usage reports, as below:
--> Open Excel
--> Click File
--> Click Import
--> Choose default "CSV file" and click Import
--> Browse and choose the file generated, click "Get Data"
--> In the "Text Import Wizard" step 1 of 3, make sure "Delimited" is selected, click Next
--> In the "Text Import Wizard" step 2 of 3, make sure "Tab" is selected as the delimitter, click Next
--> In the "Text Import Wizard" step 2 of 3, click Finish
--> In the "Import Data" promt, choose "New sheet" to place our imported data
+1. Open Excel
+2. Click File
+3. Click Import
+4. Choose default "CSV file" and click Import
+5. Browse and choose the file generated, click "Get Data"
+6. In the "Text Import Wizard" step 1 of 3, make sure "Delimited" is selected, click Next
+7. In the "Text Import Wizard" step 2 of 3, make sure "Tab" is selected as the delimitter, click Next
+8. In the "Text Import Wizard" step 2 of 3, click Finish
+9. In the "Import Data" promt, choose "New sheet" to place our imported data
 
 
 ## AI Reports
